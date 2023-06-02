@@ -1,0 +1,5 @@
+torch
+nltk
+pandas
+spacy
+numpy
