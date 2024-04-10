@@ -9,7 +9,7 @@ from layer import GraphPool
 from layer import GAT2 as GAT
 
 
-class ASG(nn.Module):
+class APM(nn.Module):
     def __init__(self, config, args,edge2idx):
         super().__init__()
         self.args = args

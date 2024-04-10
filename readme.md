@@ -26,7 +26,7 @@ Before running our code, you should download the dataset, which can see the data
 2. python AspectExtraction/2_aspect_merge.py
 3. python AspectExtraction/3_aspect_filter.py
 4. python AspectExtraction/4_aspect_sentiment.py
-## Train ASG model
+## Train APM model
 1. python src/data_process.py
 2. python src/data_gp.py
 3. python src/train.py

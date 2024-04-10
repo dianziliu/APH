@@ -9,7 +9,7 @@ import torch as t
 import torch.optim as optim
 
 from data_loader import GraphData
-from model import RGNN
+from model import APM
 sys.path.append(".")
 # os.chdir(os.path.dirname(__file__))
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     config['n_users'] = data_generator.n_users
     config['n_items'] = data_generator.n_items
     config['n_words'] = data_generator.word_num
-    model = RGNN(config=config, args=args)
+    model = APM(config=config, args=args)
     print( model_summary(model))
     model = model.cuda()
    
