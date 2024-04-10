@@ -3,7 +3,7 @@ import os
 import pickle
 import re
 import sys
-from collections import Counter
+from collections import Counter,defaultdict
 from this import d
 from tokenize import group
 
@@ -23,6 +23,12 @@ ps = PorterStemmer()
 stopWords = set(stopwords.words('english'))
 tags = ['NN', 'NNS', 'NNP', 'NNPS', 'JJ', 'JJR', 'JJS',
         'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 'PRP']
+
+
+sent2id_dict={-1:0,0:1,1:2,'x':3}
+
+edge2idx=[]
+edge_idx=0
 
 
 def ensureDir(dir_path):
@@ -50,7 +56,6 @@ class data_process(object):
                     ui_text[int(ui)] = [s]
         return ui_text
 
-
     def data_load(self, data):
         uid, iid, rate = [], [], []
         for line in data:
@@ -66,8 +71,10 @@ class data_process(object):
         with open(os.path.join(dir,"item2id"),"rb")  as f:
             self.item2id=pickle.load(f)   
 
+    def generate_graph(self,file,num_user,num_item):
 
-    def generate_graph(self,file):
+        all_edges=set()
+
         def encode_word(a):
             # 对a Jinx编码
             if a not in self.word2id:
@@ -75,6 +82,27 @@ class data_process(object):
                 self.w_cnt += 1
             word1_index = self.word2id[a]    
             return word1_index  
+        def collect_info(df):
+            self.user_his=defaultdict(list)
+            self.item_his=defaultdict(list)
+            for row in df.iterrows():
+                u,i,a,s=row.values
+                u=self.user2id[u]
+                i=self.item2id[i]+self.user_num
+                a=encode_word(a)
+                s=s+1
+                self.user_his[u].append()
+            pass
+
+        def build_graph(all_edges):
+            all_edges=list(all_edges)
+            G=nx.DiGraph()
+            c=Counter()   
+            G.add_weighted_edges_from(all_edges)
+            edg_index=[x[:2] for x in all_edges]
+            edg_value =[x[2]for x in all_edges] 
+            return np.array(edg_index),np.array(edg_value),np.array(list(G.nodes)),
+        # 为每一个用户/物品构建子图
         def g_graph(df,group_key):
             num_node = 300
             reviews_graphs = {}
@@ -90,35 +118,56 @@ class data_process(object):
                     c.update([word1_index])
                     if group_key=="user":
                         side=u
+                        s='x'
+                        other=i
                     else:
                         side=i
-                    edge_list.add((side,word1_index,int(s)+1))
+                        other=u
+                    global edge_idx
+                    this_edge_idx=edge_idx
+                    edge_idx+=1
+                    edge2idx.append([sent2id_dict[s],other])
+
+                    edge_list.add((side,word1_index,this_edge_idx))  # 边现在是（）
+                    # 将物品序号排在用户之后
+                    if group_key=="item":
+                        side+=num_user
+                    all_edges.add((side,word1_index,this_edge_idx))
                 G.add_weighted_edges_from(list(edge_list))
 
-                node_list = np.array([x[0]
-                                      for x in c.most_common(num_node)])
-                # 稀疏表示图
-                adj_matrix = nx.to_scipy_sparse_matrix(G, nodelist=node_list)
-                # adj_matrix = nx.to_scipy_sparse_array(G, nodelist=node_list)
+                edg_index = np.array([x[:2] for x in edge_list])
+                edg_value = np.array([x[2] for x in edge_list])
+                node_list = np.array(list(G.nodes))
 
-                index_val = sp.find(adj_matrix)
-                edg_index = np.array([index_val[1], index_val[0]])
-                edg_value = np.array(index_val[2])
                 if group_key=="user":
                     idx=self.user2id[user]
                 else:
                     idx=self.item2id[user]
                 reviews_graphs[idx] = (edg_index, edg_value, node_list)    
             return reviews_graphs
+
+        def build_local_graphs(graphs):
+            local_graphs={}
+            for key,(edge_index, edg_value, node_list) in graphs.items():
+                node_list=list(node_list)
+                new_edge_index = [
+                    (node_list.index(x[0]), node_list.index(x[1])) for x in edge_index
+                ]
+                local_graphs[key]=[new_edge_index,edg_value,node_list]
+            return local_graphs
+        
         ####################   1. 准备数据     ####################
         aspect_df=pd.read_csv(file,names=["user","item","aspect","sentiment"])
         self.word2id = dict()
-        self.w_cnt = 0
+        self.w_cnt = self.user_num+self.item_num  
         ####################   2. 构建用户图和物品图     ####################
         u_graphs = g_graph(aspect_df,"user")
         i_graphs = g_graph(aspect_df,"item")
-        assert len(self.word2id) == self.w_cnt
-        return u_graphs, i_graphs        
+        ui_graph = build_graph(all_edges)
+        # assert len(self.word2id) == self.w_cnt
+        u_graphs_local=build_local_graphs(u_graphs)
+        i_graphs_local=build_local_graphs(i_graphs)
+        return u_graphs_local, i_graphs_local,ui_graph        
 
     def process_d(self,kg_file):
         prodata = 'pro_data'
@@ -133,7 +182,6 @@ class data_process(object):
         uid_test, iid_test, rate_test = self.data_load(test_data)
         num_rating = len(rate_train) + len(rate_test) + len(rate_valid)
 
-
         print('splitting reviews...')
         self.u_text = self.data_review(user_reviews)
         self.i_text = self.data_review(item_reviews)
@@ -141,7 +189,7 @@ class data_process(object):
         self.item_num = len(self.i_text)
 
         print('generating graph of reviews')
-        u_graphs, i_graphs = self.generate_graph(kg_file)
+        u_graphs, i_graphs, ui_graph = self.generate_graph(kg_file,self.user_num,self.item_num)
 
         print('number of users:', self.user_num)
         print('number of items:', self.item_num)
@@ -177,6 +225,13 @@ class data_process(object):
         i_graph_path = open(os.path.join(
             self.data_dir, 'data.item_graphs'), 'wb')
         pickle.dump(i_graphs, i_graph_path)
+
+        edge2idx_path=open(os.path.join(
+            self.data_dir, 'data.edge2idx'), 'wb')
+        pickle.dump(edge2idx,edge2idx_path)
+        ui_graph_path=open(os.path.join(
+            self.data_dir, 'data.ui_graph'), 'wb')
+        pickle.dump(ui_graph,ui_graph_path)        
         print('done!')
 
     def open_files(self, prodata):
@@ -190,9 +245,8 @@ class data_process(object):
             open(os.path.join(self.data_dir + prodata + '/user_review'), 'rb'))
         item_reviews = pickle.load(
             open(os.path.join(self.data_dir + prodata + '/item_review'), 'rb'))
-            
-        return train_data,test_data,valid_data,user_reviews,item_reviews
 
+        return train_data,test_data,valid_data,user_reviews,item_reviews
 
 
 def main_for_sig():
@@ -204,20 +258,20 @@ if __name__ == '__main__':
     # random.seed(2019)
     # Data_process = data_process('../data/' + data_type + '/')
     paths = [
-        # 'Musical_Instruments_5',
-        # "Office_Products_5",
-        # "Toys_and_Games_5",
-        # "Video_Games_5",
+        'Musical_Instruments_5',
+        "Office_Products_5",
+        "Toys_and_Games_5",
+        "Video_Games_5",
         # "Automotive_5",
         # "Digital_Music_5",
         # "Pet_Supplies_5",
         # "Sports_and_Outdoors_5",
         # "Tools_and_Home_Improvement_5",
-        # "Beauty_5",
+        "Beauty_5",
         "yelp2"
     ]
 
     for p in paths:
-        Data_process=data_process("data/{}/".format(p))
-        kg_path="data/{}/as_kg.txt".format(p)
+        Data_process=data_process("src2/ASG_FOR_ndcg/data/{}/".format(p))
+        kg_path="src2/data/aspect_data/{}/as_kg.txt".format(p)
         Data_process.process_d(kg_path)
