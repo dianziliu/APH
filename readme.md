@@ -1,22 +1,21 @@
-# 《An aspect performance-aware multigraph neural network for review-based recommendation》
+# 《An aspect performance-aware hypergraph neural network for review-based recommendation》
 
 ## 
-This paper we have sumbit to ECAI'24.
+This paper we have submitted to WSDM 2025 
 
 
 ## Abstract
-Review-based recommender systems are increasingly important as reviews have a strong intrinsic correlation with user interests. 
-Existing methods detect aspects in user reviews and leverage them to model users' fine-grained preferences to specific item features by graph neural networks.
-However, due to the lack of data, these methods only consider user preferences in aspects when calculating their weights, without considering the actual performance of items in those aspects, leading to suboptimal results. 
-In fact, when users select items, they tend to prioritize performance in various aspects. 
-We argue that aspects of performance can be learned from the conflicted sentiment polarity of user reviews, mitigating the lack of data.
-In this paper, we propose an aspect performance-aware multigraph neural network (APM) for the review-based recommendation, which models aspect performance by aggregating conflicted sentiment polarity, and makes predictions under the aspect performance. 
-It aggregates the sentiment polarity of multiple users by jointly considering their preferences and the semantic meaning, thereby determining the weights of the sentiment polarity.
-This allows us to derive the performance of different aspects of the item.
-Since different aspects of an item have different performances, we design an aspect performance-aware multigraph aggregation method that aggregates neighbor nodes based on aspect performance as weights.
-An aspect fusion layer combines aspects with users and items, modeling the role that aspects play in the interaction between users and items.
-The final prediction results are produced based on the representations through a factorization machine. 
-Experiments on six real-world datasets demonstrate that the predictions of PAM significantly outperform baselines.
+Online reviews enable consumers to provide detailed information about their opinions toward different aspects of items. 
+Existing methods leverage aspects provided in reviews to model users’ fine-grained preferences to specific item features by graph neural networks. 
+In fact, when users select items, they tend to prioritize performance in various aspects. Due to the lack of data, existing methods only consider user preferences in aspects when calculating their weights, without considering the actual performance of items in those aspects, leading to suboptimal results. 
+We argue that aspect performances can be learned from the conflicting sentiment polarity of user reviews, mitigating the lack of data. 
+In this paper, we propose an aspect performance-aware hypergraph neural network (APH) for the review-based recommendation. 
+To fully model the relationships among users, items, aspects, and sentiment polarity, we extract relevant information from reviews and construct an aspect hypergraph with powerful expressive ability. 
+Based on the hypergraph, we design an aspect performance-aware hypergraph aggregation method to aggregate aspects to represent users and items. 
+It first aggregates the sentiment polarity of multiple users by jointly considering their preferences and the semantic meaning, thereby determining the weights of the sentiment polarity to derive the performance of different aspects of the item. 
+Then, considering aspects that perform well should receive higher weights during aggregation, it aggregates neighbor aspects based on aspect performance as weights. 
+Lastly, an aspect fusion layer combines aspects with users and items, modeling the role that aspects play in the interaction between users and items. 
+Experiments on six real-world datasets demonstrate that the predictions of APH significantly outperform SOTA baselines. 
 
 ## Run example
 Before running our code, you should download the dataset, which can see the data/readme.md
