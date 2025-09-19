@@ -1,7 +1,7 @@
 # 《An aspect performance-aware hypergraph neural network for review-based recommendation》
 
 ## 
-This paper we have submitted to WSDM 2025 
+This paper has been accepted by WSDM 2025.
 
 
 ## Abstract
@@ -29,3 +29,24 @@ Before running our code, you should download the dataset, which can see the data
 1. python src/data_process.py
 2. python src/data_gp.py
 3. python src/train.py
+
+<h2 id="citation">3. Citation☕️</h2>
+
+If you find this repository helpful, please consider citing our paper when it has been accepted.
+
+<!-- ```
+@inproceedings{liu-wsdm-2025-aph,
+  author       = {
+                  Junrui Liu and
+                  Tong Li and
+                  Di Wu and
+                  Zifang Tang and
+                  Yuan Fang and
+                  Zhen Yang},
+  title        = {An Aspect Performance-aware Hypergraph Neural Network for Review-based Recommendation},
+  booktitle    = {Proceedings of the Eighteenth ACM International Conference on Web Search and Data Mining},
+  pages        = {503–511},
+  publisher    = {{ACM}},
+  year         = {2025},
+}
+``` -->
