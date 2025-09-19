@@ -32,9 +32,8 @@ Before running our code, you should download the dataset, which can see the data
 
 <h2 id="citation">3. Citation☕️</h2>
 
-If you find this repository helpful, please consider citing our paper when it has been accepted.
+If you find this repository helpful, please consider citing our paper.
 
-<!-- ```
 @inproceedings{liu-wsdm-2025-aph,
   author       = {
                   Junrui Liu and
@@ -49,4 +48,4 @@ If you find this repository helpful, please consider citing our paper when it ha
   publisher    = {{ACM}},
   year         = {2025},
 }
-``` -->
+
